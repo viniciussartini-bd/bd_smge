@@ -1,5 +1,7 @@
 import express, { Express } from 'express';
 import cors from 'cors';
+import path from "node:path";
+import favicon from "serve-favicon";
 import { env } from './config/env.config.js';
 import { errorHandler, notFoundHandler } from './shared/middlewares/error-handler.middleware.js';
 
@@ -40,6 +42,18 @@ class App {
         // Body parsers
         this.express.use(express.json({ limit: '10mb' }));
         this.express.use(express.urlencoded({ extended: true }));
+
+        
+        // Favicon (deve vir antes das rotas)
+        this.express.use(
+            favicon(path.join(process.cwd(), 'public', 'favicon.ico'))
+        );
+
+        // Arquivos estáticos públicos (opcional, mas útil para servir outros assets)
+        this.express.use(
+            express.static(path.join(process.cwd(), 'public'))
+        );
+
 
         // Logging simples de requisições
         this.express.use((req, _res, next) => {
