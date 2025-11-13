@@ -1,0 +1,1 @@
+export type DurationString = `${number}${'ms'|'s'|'m'|'h'|'d'|'y'}`;

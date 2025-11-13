@@ -26,28 +26,28 @@ model User {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relacionamentos
-  profile          Profile?
-  plants           Plant[]  // Modificado de properties para plants
-  passwordResets   PasswordReset[]
-  revokedTokens    RevokedToken[]
-  alerts           Alert[]
-  simulations      Simulation[]
-  consumptionLogs  ConsumptionLog[]
+  profile         Profile?
+  plants          Plant[] // Modificado de properties para plants
+  passwordResets  PasswordReset[]
+  revokedTokens   RevokedToken[]
+  alerts          Alert[]
+  simulations     Simulation[]
+  consumptionLogs ConsumptionLog[]
 
   @@map("users")
 }
 
 model Profile {
-  id            String   @id @default(uuid())
-  fantasyName   String   @map("fantasy_name")
-  cnpj          String   @unique
-  zipCode       String   @map("zip_code")
-  address       String
-  city          String
-  state         String
-  phone         String?
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
+  id          String   @id @default(uuid())
+  fantasyName String   @map("fantasy_name")
+  cnpj        String   @unique
+  zipCode     String   @map("zip_code")
+  address     String
+  city        String
+  state       String
+  phone       String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
   // Relacionamentos
   userId String @unique @map("user_id")
@@ -90,29 +90,29 @@ model RevokedToken {
 // ==================== PROPRIEDADES E ESTRUTURA FÍSICA ====================
 
 model Plant {
-  id                    String   @id @default(uuid())
-  name                  String
-  cnpj                  String   @unique
-  zipCode               String   @map("zip_code")
-  address               String
-  city                  String
-  state                 String
-  totalArea             Float    @map("total_area")
-  registeredAreasCount  Int      @default(0) @map("registered_areas_count")
-  totalConsumption      Float    @default(0) @map("total_consumption")
-  createdAt             DateTime @default(now()) @map("created_at")
-  updatedAt             DateTime @updatedAt @map("updated_at")
+  id                   String   @id @default(uuid())
+  name                 String
+  cnpj                 String   @unique
+  zipCode              String   @map("zip_code")
+  address              String
+  city                 String
+  state                String
+  totalArea            Float    @map("total_area")
+  registeredAreasCount Int      @default(0) @map("registered_areas_count")
+  totalConsumption     Float    @default(0) @map("total_consumption")
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
 
   // Rastreia quem criou a planta (apenas admins podem criar)
-  createdById     String         @map("created_by_id")
-  createdBy       User           @relation(fields: [createdById], references: [id], onDelete: Restrict)
-  
+  createdById String @map("created_by_id")
+  createdBy   User   @relation(fields: [createdById], references: [id], onDelete: Restrict)
+
   energyCompanyId String?        @map("energy_company_id")
   energyCompany   EnergyCompany? @relation(fields: [energyCompanyId], references: [id], onDelete: SetNull)
-  
-  areas           Area[]
-  alerts          Alert[]
-  simulations     Simulation[]
+
+  areas       Area[]
+  alerts      Alert[]
+  simulations Simulation[]
 
   @@index([createdById])
   @@index([energyCompanyId])
@@ -130,46 +130,46 @@ model Area {
   updatedAt              DateTime @updatedAt @map("updated_at")
 
   // Relacionamento com Plant
-  plantId  String @map("plant_id")  // Modificado de propertyId
-  plant    Plant  @relation(fields: [plantId], references: [id], onDelete: Cascade)
-  
-  devices      Device[]
-  alerts       Alert[]
-  simulations  Simulation[]
+  plantId String @map("plant_id") // Modificado de propertyId
+  plant   Plant  @relation(fields: [plantId], references: [id], onDelete: Cascade)
 
-  @@index([plantId])  // Modificado de propertyId
+  devices     Device[]
+  alerts      Alert[]
+  simulations Simulation[]
+
+  @@index([plantId]) // Modificado de propertyId
   @@map("areas")
 }
 
 model Device {
-  id                String   @id @default(uuid())
-  name              String
-  model             String?
-  brand             String?
-  workingVoltage    Float    @map("working_voltage") // em Volts
-  power             Float // em Watts
-  usageTime         Float    @default(0) @map("usage_time") // em horas por dia
-  description       String?
-  
+  id             String  @id @default(uuid())
+  name           String
+  model          String?
+  brand          String?
+  workingVoltage Float   @map("working_voltage") // em Volts
+  power          Float // em Watts
+  usageTime      Float   @default(0) @map("usage_time") // em horas por dia
+  description    String?
+
   // Campos para integração IoT
-  iotDeviceId       String?  @unique @map("iot_device_id")
-  protocol          String? // EtherNET/IP, MODBUS, Profibus, MQTT, etc
-  ipAddress         String?  @map("ip_address")
-  port              Int?
-  endpoint          String?
-  isConnected       Boolean  @default(false) @map("is_connected")
-  lastConnection    DateTime? @map("last_connection")
-  
-  createdAt         DateTime @default(now()) @map("created_at")
-  updatedAt         DateTime @updatedAt @map("updated_at")
+  iotDeviceId    String?   @unique @map("iot_device_id")
+  protocol       String? // EtherNET/IP, MODBUS, Profibus, MQTT, etc
+  ipAddress      String?   @map("ip_address")
+  port           Int?
+  endpoint       String?
+  isConnected    Boolean   @default(false) @map("is_connected")
+  lastConnection DateTime? @map("last_connection")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relacionamentos
-  areaId            String   @map("area_id")
-  area              Area     @relation(fields: [areaId], references: [id], onDelete: Cascade)
-  
-  consumptionLogs   ConsumptionLog[]
-  alerts            Alert[]
-  simulations       Simulation[]
+  areaId String @map("area_id")
+  area   Area   @relation(fields: [areaId], references: [id], onDelete: Cascade)
+
+  consumptionLogs ConsumptionLog[]
+  alerts          Alert[]
+  simulations     Simulation[]
 
   @@index([areaId])
   @@index([iotDeviceId])
@@ -179,24 +179,24 @@ model Device {
 // ==================== CONSUMO DE ENERGIA ====================
 
 model ConsumptionLog {
-  id              String   @id @default(uuid())
-  consumption     Float // em kWh
-  timestamp       DateTime @default(now())
-  source          String // 'manual', 'iot', 'modbus', 'mqtt', etc
-  
+  id          String   @id @default(uuid())
+  consumption Float // em kWh
+  timestamp   DateTime @default(now())
+  source      String // 'manual', 'iot', 'modbus', 'mqtt', etc
+
   // Campos opcionais para métricas adicionais
-  voltage         Float? // em Volts
-  current         Float? // em Amperes
-  powerFactor     Float? @map("power_factor") // fator de potência
-  
+  voltage     Float? // em Volts
+  current     Float? // em Amperes
+  powerFactor Float? @map("power_factor") // fator de potência
+
   // Relacionamentos - consumo pode ser da propriedade, área ou device específico
-  userId          String?  @map("user_id")
-  user            User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-  
-  deviceId        String?  @map("device_id")
-  device          Device?  @relation(fields: [deviceId], references: [id], onDelete: Cascade)
-  
-  createdAt       DateTime @default(now()) @map("created_at")
+  userId String? @map("user_id")
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  deviceId String? @map("device_id")
+  device   Device? @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
 
   @@index([deviceId, timestamp])
   @@index([timestamp])
@@ -205,28 +205,28 @@ model ConsumptionLog {
 }
 
 model EnergyCompany {
-  id                  String   @id @default(uuid())
-  name                String
-  cnpj                String   @unique
-  phone               String?
-  email               String?
-  
-  tariffKwh           Float    @map("tariff_kwh")
-  tariffPeakKwh       Float?   @map("tariff_peak_kwh")
-  peakStartTime       String?  @map("peak_start_time")
-  peakEndTime         String?  @map("peak_end_time")
-  
-  greenFlagValue      Float    @default(0) @map("green_flag_value")
-  yellowFlagValue     Float    @default(0) @map("yellow_flag_value")
-  redFlag1Value       Float    @default(0) @map("red_flag1_value")
-  redFlag2Value       Float    @default(0) @map("red_flag2_value")
-  currentFlag         String   @default("green") @map("current_flag")
-  
-  createdAt           DateTime @default(now()) @map("created_at")
-  updatedAt           DateTime @updatedAt @map("updated_at")
+  id    String  @id @default(uuid())
+  name  String
+  cnpj  String  @unique
+  phone String?
+  email String?
+
+  tariffKwh     Float   @map("tariff_kwh")
+  tariffPeakKwh Float?  @map("tariff_peak_kwh")
+  peakStartTime String? @map("peak_start_time")
+  peakEndTime   String? @map("peak_end_time")
+
+  greenFlagValue  Float  @default(0) @map("green_flag_value")
+  yellowFlagValue Float  @default(0) @map("yellow_flag_value")
+  redFlag1Value   Float  @default(0) @map("red_flag1_value")
+  redFlag2Value   Float  @default(0) @map("red_flag2_value")
+  currentFlag     String @default("green") @map("current_flag")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relacionamento
-  plants              Plant[]  // Modificado de properties
+  plants Plant[] // Modificado de properties
 
   @@map("energy_companies")
 }
@@ -234,36 +234,36 @@ model EnergyCompany {
 // ==================== ALERTAS E NOTIFICAÇÕES ====================
 
 model Alert {
-  id              String   @id @default(uuid())
-  title           String
-  message         String
-  type            String
-  severity        String
-  isRead          Boolean  @default(false) @map("is_read")
-  
-  threshold       Float?
-  comparisonType  String?  @map("comparison_type")
-  timeWindow      String?  @map("time_window")
-  isActive        Boolean  @default(true) @map("is_active")
-  
-  triggeredValue  Float?   @map("triggered_value")
-  triggeredAt     DateTime? @map("triggered_at")
-  
-  createdAt       DateTime @default(now()) @map("created_at")
-  updatedAt       DateTime @updatedAt @map("updated_at")
+  id       String  @id @default(uuid())
+  title    String
+  message  String
+  type     String
+  severity String
+  isRead   Boolean @default(false) @map("is_read")
+
+  threshold      Float?
+  comparisonType String? @map("comparison_type")
+  timeWindow     String? @map("time_window")
+  isActive       Boolean @default(true) @map("is_active")
+
+  triggeredValue Float?    @map("triggered_value")
+  triggeredAt    DateTime? @map("triggered_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relacionamentos
-  userId     String  @map("user_id")
-  user       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  plantId    String? @map("plant_id")  // Modificado de propertyId
-  plant      Plant?  @relation(fields: [plantId], references: [id], onDelete: Cascade)
-  
-  areaId     String? @map("area_id")
-  area       Area?   @relation(fields: [areaId], references: [id], onDelete: Cascade)
-  
-  deviceId   String? @map("device_id")
-  device     Device? @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  plantId String? @map("plant_id") // Modificado de propertyId
+  plant   Plant?  @relation(fields: [plantId], references: [id], onDelete: Cascade)
+
+  areaId String? @map("area_id")
+  area   Area?   @relation(fields: [areaId], references: [id], onDelete: Cascade)
+
+  deviceId String? @map("device_id")
+  device   Device? @relation(fields: [deviceId], references: [id], onDelete: Cascade)
 
   @@index([userId, isRead])
   @@index([isActive])
@@ -274,44 +274,43 @@ model Alert {
 // ==================== SIMULAÇÕES DE CONSUMO E CUSTO ====================
 
 model Simulation {
-  id                   String   @id @default(uuid())
-  name                 String
-  description          String?
-  
-  simulationType       String   @map("simulation_type")
-  scope                String
-  
-  estimatedConsumption Float    @map("estimated_consumption")
-  estimatedCost        Float    @map("estimated_cost")
-  
-  startDate            DateTime @map("start_date")
-  endDate              DateTime @map("end_date")
-  averageDailyUsage    Float?   @map("average_daily_usage")
-  tariffUsed           Float    @map("tariff_used")
-  flagUsed             String?  @map("flag_used")
-  
-  realConsumption      Float?   @map("real_consumption")
-  variance             Float?
-  
-  createdAt            DateTime @default(now()) @map("created_at")
-  updatedAt            DateTime @updatedAt @map("updated_at")
+  id          String  @id @default(uuid())
+  name        String
+  description String?
+
+  simulationType String @map("simulation_type")
+  scope          String
+
+  estimatedConsumption Float @map("estimated_consumption")
+  estimatedCost        Float @map("estimated_cost")
+
+  startDate         DateTime @map("start_date")
+  endDate           DateTime @map("end_date")
+  averageDailyUsage Float?   @map("average_daily_usage")
+  tariffUsed        Float    @map("tariff_used")
+  flagUsed          String?  @map("flag_used")
+
+  realConsumption Float? @map("real_consumption")
+  variance        Float?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relacionamentos
-  userId    String  @map("user_id")
-  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  plantId   String? @map("plant_id")  // Modificado de propertyId
-  plant     Plant?  @relation(fields: [plantId], references: [id], onDelete: Cascade)
-  
-  areaId    String? @map("area_id")
-  area      Area?   @relation(fields: [areaId], references: [id], onDelete: Cascade)
-  
-  deviceId  String? @map("device_id")
-  device    Device? @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  plantId String? @map("plant_id") // Modificado de propertyId
+  plant   Plant?  @relation(fields: [plantId], references: [id], onDelete: Cascade)
+
+  areaId String? @map("area_id")
+  area   Area?   @relation(fields: [areaId], references: [id], onDelete: Cascade)
+
+  deviceId String? @map("device_id")
+  device   Device? @relation(fields: [deviceId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([scope])
   @@index([createdAt])
   @@map("simulations")
 }
-
