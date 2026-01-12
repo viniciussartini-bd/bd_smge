@@ -6,6 +6,7 @@ import { env } from './config/env.config.js';
 import { errorHandler, notFoundHandler } from './shared/middlewares/error-handler.middleware.js';
 import authRoutes from './modules/auth/auth.routes.js';
 import plantRoutes from './modules/plant/plant.routes.js';
+import areaRoutes from './modules/area/area.routes.js';
 
 class App {
     public express: Express;
@@ -57,6 +58,7 @@ class App {
 
         this.express.use('/api/auth', authRoutes);
         this.express.use('/api/plants', plantRoutes);
+        this.express.use('/api/areas', areaRoutes);
     }
 
     private setupErrorHandlers(): void {
