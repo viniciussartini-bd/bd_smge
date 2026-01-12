@@ -4,6 +4,7 @@ import path from "node:path";
 import favicon from "serve-favicon";
 import { env } from './config/env.config.js';
 import { errorHandler, notFoundHandler } from './shared/middlewares/error-handler.middleware.js';
+import authRoutes from './modules/auth/auth.routes.js';
 
 /**
  * Classe que encapsula a configuração da aplicação Express.
@@ -86,11 +87,7 @@ class App {
             });
         });
 
-        // Aqui adicionaremos as rotas dos módulos conforme formos desenvolvendo
-        // Exemplo:
-        // this.express.use('/api/auth', authRoutes);
-        // this.express.use('/api/plants', plantRoutes);
-        // this.express.use('/api/areas', areaRoutes);
+        this.express.use('/api/auth', authRoutes);
     }
 
     /**
