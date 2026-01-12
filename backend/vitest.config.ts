@@ -1,83 +1,69 @@
 import { defineConfig } from 'vitest/config';
 
 /**
- * Configuração do Vitest para testes.
+ * Configuração do Vitest para testes de integração.
  * 
- * Esta configuração prepara o ambiente de testes para trabalhar com TypeScript,
- * ESM e Node.js de forma otimizada. Cada opção aqui foi cuidadosamente escolhida
- * para proporcionar a melhor experiência de desenvolvimento possível enquanto
- * garante que os testes sejam executados de forma confiável e rápida.
+ * Esta configuração foi ajustada especificamente para testes de integração
+ * que compartilham um banco de dados real. A chave aqui é desabilitar a
+ * execução paralela de testes para evitar condições de corrida.
+ * 
+ * IMPORTANTE: Estamos usando configurações que funcionam na versão 4.0.8 do Vitest.
+ * As configurações são mais simples mas igualmente efetivas.
  */
 export default defineConfig({
     test: {
         /**
-         * Globals permite usar funções como describe, it, expect sem importá-las
-         * explicitamente em cada arquivo de teste. Isso torna os testes mais limpos
-         * e é o comportamento padrão que a maioria dos desenvolvedores espera vindos
-         * de frameworks como Jest.
+         * Globals permite usar funções como describe, it, expect sem importá-las.
          */
         globals: true,
 
         /**
-         * Environment define o ambiente onde os testes rodam. 'node' significa que
-         * os testes rodarão em um ambiente Node.js puro, não em um browser simulado.
-         * Isso é apropriado porque estamos testando uma API backend, não código
-         * que roda no navegador.
+         * Environment 'node' é apropriado para testes de backend/API.
          */
         environment: 'node',
 
         /**
-         * setupFiles especifica arquivos que devem ser executados antes de cada
-         * suite de testes. Usaremos isso para configurar o banco de dados de teste,
-         * limpar dados entre testes, e outras tarefas de setup.
+         * setupFiles executam antes de cada suite de testes.
          */
         setupFiles: ['./src/tests/setup.ts'],
 
         /**
-         * Pool e poolOptions controlam como os testes são executados.
-         * Usamos 'forks' ao invés de 'threads' porque nossos testes interagem com
-         * banco de dados e precisam de isolamento completo. Cada suite de testes
-         * rodará em seu próprio processo Node.js separado.
+         * CRÍTICO: pool define como os testes são executados.
+         * 
+         * Usando 'threads' com configurações específicas que forçam execução sequencial.
+         * Na versão 4.0.8, esta é a forma mais confiável de desabilitar paralelismo.
          */
         pool: 'threads',
-//        poolOptions: {
-//            forks: {
-                /**
-                 * singleFork: true força todos os testes a rodarem sequencialmente em
-                 * um único processo. Isso é importante porque nossos testes compartilham
-                 * o mesmo banco de dados, e execução paralela poderia causar condições
-                 * de corrida onde um teste interfere com outro.
-                 */
-//                singleFork: true,
-//            },
-//        },
 
         /**
-         * Coverage configura como os relatórios de cobertura de código são gerados.
-         * Estes relatórios mostram quais partes do código estão sendo testadas e
-         * quais não estão, ajudando você a identificar gaps na cobertura de testes.
+         * CHAVE PARA RESOLVER O PROBLEMA:
+         * 
+         * maxConcurrency: 1 força apenas 1 teste a rodar por vez.
+         * Isso efetivamente desabilita todo paralelismo.
+         * 
+         * Mesmo que o Vitest tente criar múltiplas threads, apenas 1 teste
+         * será executado de cada vez, eliminando condições de corrida.
+         */
+        maxConcurrency: 1,
+
+        /**
+         * fileParallelism controla se múltiplos arquivos de teste rodam em paralelo.
+         * false = um arquivo de teste por vez (sequencial).
+         */
+        fileParallelism: false,
+
+        /**
+         * isolate garante que cada arquivo de teste rode em um contexto isolado.
+         * Isso ajuda a prevenir vazamento de estado entre arquivos de teste.
+         */
+        isolate: true,
+
+        /**
+         * Configuração de cobertura de código.
          */
         coverage: {
-            /**
-             * Provider 'v8' usa o coverage nativo do V8 (engine JavaScript do Node.js),
-             * que é mais rápido e preciso que alternativas baseadas em instrumentação
-             * de código.
-             */
             provider: 'v8',
-
-            /**
-             * Reporter define os formatos de relatório gerados. 'text' mostra um resumo
-             * no terminal, 'json' gera dados estruturados para ferramentas de CI/CD,
-             * 'html' cria um relatório visual navegável no browser, e 'lcov' é um
-             * formato padrão usado por muitas ferramentas de análise de código.
-             */
             reporter: ['text', 'json', 'html', 'lcov'],
-
-            /**
-             * Exclude lista pastas e arquivos que não devem ser incluídos no relatório
-             * de cobertura. Não faz sentido medir cobertura de testes, configurações,
-             * ou arquivos de build, então excluímos essas áreas.
-             */
             exclude: [
                 'node_modules/**',
                 'src/tests/**',
@@ -86,14 +72,6 @@ export default defineConfig({
                 'dist/**',
                 'coverage/**',
             ],
-
-            /**
-             * Thresholds definem os níveis mínimos aceitáveis de cobertura de código.
-             * Se a cobertura cair abaixo destes valores, os testes falharão. Isso
-             * garante que o projeto mantenha um padrão alto de qualidade ao longo
-             * do tempo. Os valores de 80% são considerados bons para projetos
-             * profissionais, indicando que a maior parte do código está testada.
-             */
             thresholds: {
                 statements: 80,
                 branches: 80,
@@ -103,17 +81,12 @@ export default defineConfig({
         },
 
         /**
-         * TestTimeout define quanto tempo um teste pode rodar antes de ser
-         * considerado travado e ser abortado. 10 segundos é generoso o suficiente
-         * para testes que fazem operações de I/O como consultas ao banco de dados,
-         * mas curto o suficiente para detectar testes problemáticos rapidamente.
+         * Timeout generoso porque testes de integração fazem I/O real.
          */
         testTimeout: 10000,
 
         /**
-         * Silent suprime logs de console durante os testes quando definido como true.
-         * Mantemos como false para poder ver mensagens importantes durante o
-         * desenvolvimento dos testes.
+         * Silent false para ver mensagens importantes durante os testes.
          */
         silent: false,
     },

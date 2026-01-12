@@ -8,16 +8,11 @@ import { prisma } from '../config/database.config.js';
  * principal é garantir que o ambiente de testes esteja limpo e consistente,
  * permitindo que cada teste rode em isolamento sem interferir nos outros.
  * 
- * A estratégia aqui é usar o mesmo banco de dados para todos os testes, mas
- * limpar todos os dados entre cada teste. Isso garante que cada teste comece
- * com um estado conhecido e previsível, eliminando bugs difíceis de reproduzir
- * causados por testes que dependem do estado deixado por testes anteriores.
+ * IMPORTANTE: A ordem de limpeza das tabelas é crucial devido às foreign keys.
+ * Devemos deletar primeiro as tabelas que dependem de outras (tabelas filhas),
+ * e por último as tabelas base (tabelas pais).
  */
 
-/**
- * beforeAll roda uma vez antes de todos os testes da suite começarem.
- * Usamos isso para garantir que o banco de dados está conectado e pronto.
- */
 beforeAll(async () => {
     console.log('🧪 Setting up test environment...');
     
@@ -30,12 +25,6 @@ beforeAll(async () => {
     }
 });
 
-/**
- * afterAll roda uma vez depois que todos os testes terminaram.
- * Usamos isso para desconectar do banco de dados de forma limpa,
- * liberando recursos e garantindo que o processo de teste possa
- * encerrar graciosamente.
- */
 afterAll(async () => {
     console.log('🧹 Cleaning up test environment...');
     
@@ -51,26 +40,64 @@ afterAll(async () => {
 /**
  * beforeEach roda antes de cada teste individual.
  * 
- * Esta função é crucial para isolar testes uns dos outros. Ela limpa
- * completamente o banco de dados antes de cada teste, garantindo que
- * nenhum teste seja afetado pelos dados deixados por testes anteriores.
+ * ORDEM CRÍTICA DE DELEÇÃO:
  * 
- * A ordem de deleção é importante por causa das foreign keys. Começamos
- * deletando dados de tabelas que dependem de outras (como revokedTokens
- * que depende de users) e vamos subindo a hierarquia até chegar nas
- * tabelas base que não dependem de ninguém.
+ * A ordem abaixo respeita rigorosamente as foreign keys do schema Prisma.
+ * Começamos deletando as tabelas que estão no "topo" da hierarquia de dependências
+ * e vamos descendo até as tabelas base.
+ * 
+ * Hierarquia de dependências (do mais dependente ao menos dependente):
+ * 
+ * Level 4 (folhas - não têm nada que depende delas):
+ *   - ConsumptionLog (depende de: User, Device)
+ * 
+ * Level 3:
+ *   - Alert (depende de: User, Plant, Area, Device)
+ *   - Simulation (depende de: User, Plant, Area, Device)
+ *   - Device (depende de: Area)
+ *   - RevokedToken (depende de: User)
+ *   - PasswordReset (depende de: User)
+ * 
+ * Level 2:
+ *   - Area (depende de: Plant)
+ *   - Profile (depende de: User)
+ * 
+ * Level 1:
+ *   - Plant (depende de: User, EnergyCompany) ⚠️ CRITICAL: onDelete: Restrict para User!
+ * 
+ * Level 0 (base - outras tabelas dependem delas):
+ *   - User (muitas tabelas dependem!)
+ *   - EnergyCompany (Plant depende)
  */
 beforeEach(async () => {
-  // Limpa todas as tabelas na ordem correta para respeitar foreign keys
-    await prisma.revokedToken.deleteMany();
-    await prisma.passwordReset.deleteMany();
-    await prisma.consumptionLog.deleteMany();
-    await prisma.alert.deleteMany();
-    await prisma.simulation.deleteMany();
-    await prisma.device.deleteMany();
-    await prisma.area.deleteMany();
-    await prisma.plant.deleteMany();
-    await prisma.profile.deleteMany();
-    await prisma.user.deleteMany();
-    await prisma.energyCompany.deleteMany();
+    try {
+        // Level 4: Deletar primeiro as tabelas que não têm dependentes
+        await prisma.consumptionLog.deleteMany();
+
+        // Level 3: Deletar tabelas que dependem de Area, Device, Plant
+        await prisma.alert.deleteMany();
+        await prisma.simulation.deleteMany();
+        await prisma.device.deleteMany();
+        
+        // Deletar tokens relacionados a User (mas não impedem deleção de User)
+        await prisma.revokedToken.deleteMany();
+        await prisma.passwordReset.deleteMany();
+
+        // Level 2: Deletar tabelas que dependem diretamente de Plant ou User
+        await prisma.area.deleteMany();
+        await prisma.profile.deleteMany();
+
+        // Level 1: CRÍTICO - Deletar plantas ANTES de usuários!
+        // Esta é a chave para resolver o problema. Plant tem onDelete: Restrict
+        // para User, então DEVE ser deletada antes dos usuários.
+        await prisma.plant.deleteMany();
+
+        // Level 0: Deletar tabelas base por último
+        await prisma.user.deleteMany();
+        await prisma.energyCompany.deleteMany();
+        
+    } catch (error) {
+        console.error('❌ Error cleaning database:', error);
+        throw error;
+    }
 });
