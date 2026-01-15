@@ -14,6 +14,17 @@ enum UserRole {
   USER
 }
 
+// Enum para as fontes de dados de consumo
+enum ConsumptionSource {
+  MANUAL
+  IOT
+  MODBUS
+  ETHERNET_IP
+  PROFIBUS
+  MQTT
+  OPC_UA
+}
+
 // ==================== AUTENTICAÇÃO E USUÁRIOS ====================
 
 model User {
@@ -27,7 +38,7 @@ model User {
 
   // Relacionamentos
   profile         Profile?
-  plants          Plant[] // Modificado de properties para plants
+  plants          Plant[]
   passwordResets  PasswordReset[]
   revokedTokens   RevokedToken[]
   alerts          Alert[]
@@ -130,14 +141,14 @@ model Area {
   updatedAt              DateTime @updatedAt @map("updated_at")
 
   // Relacionamento com Plant
-  plantId String @map("plant_id") // Modificado de propertyId
+  plantId String @map("plant_id")
   plant   Plant  @relation(fields: [plantId], references: [id], onDelete: Cascade)
 
   devices     Device[]
   alerts      Alert[]
   simulations Simulation[]
 
-  @@index([plantId]) // Modificado de propertyId
+  @@index([plantId])
   @@map("areas")
 }
 
@@ -146,30 +157,31 @@ model Device {
   name           String
   model          String?
   brand          String?
-  workingVoltage Float   @map("working_voltage") // em Volts
-  power          Float // em Watts
-  usageTime      Float   @default(0) @map("usage_time") // em horas por dia
+  workingVoltage Float
+  power          Float
+  usageTime      Float   @default(0)
   description    String?
 
-  // Campos para integração IoT
-  iotDeviceId    String?   @unique @map("iot_device_id")
-  protocol       String? // EtherNET/IP, MODBUS, Profibus, MQTT, etc
-  ipAddress      String?   @map("ip_address")
-  port           Int?
-  endpoint       String?
-  isConnected    Boolean   @default(false) @map("is_connected")
-  lastConnection DateTime? @map("last_connection")
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  // Relacionamentos
-  areaId String @map("area_id")
+  // Relacionamento com área
+  areaId String
   area   Area   @relation(fields: [areaId], references: [id], onDelete: Cascade)
 
+  // Campos IoT
+  iotDeviceId    String?   @unique
+  protocol       String?
+  ipAddress      String?
+  port           Int?
+  endpoint       String?
+  isConnected    Boolean   @default(false)
+  lastConnection DateTime?
+
+  // Relacionamentos
   consumptionLogs ConsumptionLog[]
   alerts          Alert[]
   simulations     Simulation[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([areaId])
   @@index([iotDeviceId])
@@ -179,26 +191,34 @@ model Device {
 // ==================== CONSUMO DE ENERGIA ====================
 
 model ConsumptionLog {
-  id          String   @id @default(uuid())
-  consumption Float // em kWh
-  timestamp   DateTime @default(now())
-  source      String // 'manual', 'iot', 'modbus', 'mqtt', etc
+  id          String            @id @default(uuid())
+  consumption Float // Consumo em kWh
+  timestamp   DateTime // Data/hora da leitura
+  source      ConsumptionSource // Agora é um enum, não string genérico
 
-  // Campos opcionais para métricas adicionais
-  voltage     Float? // em Volts
-  current     Float? // em Amperes
-  powerFactor Float? @map("power_factor") // fator de potência
+  // Relacionamento com dispositivo
+  deviceId String
+  device   Device @relation(fields: [deviceId], references: [id], onDelete: Cascade)
 
-  // Relacionamentos - consumo pode ser da propriedade, área ou device específico
+  // Relacionamento com usuário (quem registrou o log)
   userId String? @map("user_id")
   user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
 
-  deviceId String? @map("device_id")
-  device   Device? @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  // Métricas adicionais opcionais
+  voltage     Float? // Voltagem em Volts
+  current     Float? // Corrente em Amperes
+  powerFactor Float? // Fator de potência (0-1)
+  temperature Float? // Temperatura em Celsius
 
-  createdAt DateTime @default(now()) @map("created_at")
+  // Notas/observações
+  notes String?
 
-  @@index([deviceId, timestamp])
+  // Timestamps de auditoria
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([deviceId])
+  @@index([userId])
   @@index([timestamp])
   @@index([source])
   @@map("consumption_logs")
@@ -226,7 +246,7 @@ model EnergyCompany {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relacionamento
-  plants Plant[] // Modificado de properties
+  plants Plant[]
 
   @@map("energy_companies")
 }
@@ -256,7 +276,7 @@ model Alert {
   userId String @map("user_id")
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  plantId String? @map("plant_id") // Modificado de propertyId
+  plantId String? @map("plant_id")
   plant   Plant?  @relation(fields: [plantId], references: [id], onDelete: Cascade)
 
   areaId String? @map("area_id")
@@ -300,7 +320,7 @@ model Simulation {
   userId String @map("user_id")
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  plantId String? @map("plant_id") // Modificado de propertyId
+  plantId String? @map("plant_id")
   plant   Plant?  @relation(fields: [plantId], references: [id], onDelete: Cascade)
 
   areaId String? @map("area_id")
