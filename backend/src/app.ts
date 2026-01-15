@@ -7,6 +7,7 @@ import { errorHandler, notFoundHandler } from './shared/middlewares/error-handle
 import authRoutes from './modules/auth/auth.routes.js';
 import plantRoutes from './modules/plant/plant.routes.js';
 import areaRoutes from './modules/area/area.routes.js';
+import deviceRoutes from './modules/device/device.routes.js';
 
 class App {
     public express: Express;
@@ -59,6 +60,7 @@ class App {
         this.express.use('/api/auth', authRoutes);
         this.express.use('/api/plants', plantRoutes);
         this.express.use('/api/areas', areaRoutes);
+        this.express.use('/api/devices', deviceRoutes);
     }
 
     private setupErrorHandlers(): void {
