@@ -11,6 +11,7 @@ import deviceRoutes from './modules/device/device.routes.js';
 import consumptionLogRoutes from './modules/consumption-log/consumption-log.routes.js';
 import energyCompanyRoutes from './modules/energy-company/energy-company.routes.js';
 import alertRoutes from './modules/alert/alert.routes.js';
+import simulationRoutes from './modules/simulation/simulation.routes.js';
 
 class App {
     public express: Express;
@@ -67,6 +68,7 @@ class App {
         this.express.use('/api/consumption-logs', consumptionLogRoutes);
         this.express.use('/api/energy-companies', energyCompanyRoutes);
         this.express.use('/api/alerts', alertRoutes);
+        this.express.use('/api/simulations', simulationRoutes);
     }
 
     private setupErrorHandlers(): void {
