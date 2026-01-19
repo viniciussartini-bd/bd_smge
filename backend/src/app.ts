@@ -12,6 +12,7 @@ import consumptionLogRoutes from './modules/consumption-log/consumption-log.rout
 import energyCompanyRoutes from './modules/energy-company/energy-company.routes.js';
 import alertRoutes from './modules/alert/alert.routes.js';
 import simulationRoutes from './modules/simulation/simulation.routes.js';
+import profileRoutes from './modules/profile/profile.routes.js';
 
 class App {
     public express: Express;
@@ -62,6 +63,7 @@ class App {
         });
 
         this.express.use('/api/auth', authRoutes);
+        this.express.use('/api/profile', profileRoutes);
         this.express.use('/api/plants', plantRoutes);
         this.express.use('/api/areas', areaRoutes);
         this.express.use('/api/devices', deviceRoutes);
