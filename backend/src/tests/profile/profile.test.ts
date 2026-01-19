@@ -4,6 +4,15 @@ import app from '../../app.js';
 import { prisma } from '../../config/database.config.js';
 import { createTestUser, createTestAdmin, generateTestToken, createAuthHeader } from '../helpers.js';
 
+// CNPJs válidos para uso nos testes
+const VALID_CNPJS = {
+    CNPJ_1: '11222333000181',
+    CNPJ_2: '11222333000262', // CNPJ válido diferente
+    CNPJ_3: '11222333000343', // CNPJ válido diferente
+    CNPJ_4: '11222333000424', // CNPJ válido diferente
+    CNPJ_INVALID: '11111111111111', // CNPJ inválido para testes de validação
+};
+
 describe('POST /api/profile', () => {
     it('should create profile successfully', async () => {
         const user = await createTestUser();
@@ -14,7 +23,7 @@ describe('POST /api/profile', () => {
             .set('Authorization', createAuthHeader(token))
             .send({
                 fantasyName: 'Minha Empresa LTDA',
-                cnpj: '11222333000181',
+                cnpj: VALID_CNPJS.CNPJ_1,
                 zipCode: '12345678',
                 address: 'Rua Teste, 123',
                 city: 'São Paulo',
@@ -25,7 +34,7 @@ describe('POST /api/profile', () => {
 
         expect(response.body.success).toBe(true);
         expect(response.body.data.fantasyName).toBe('Minha Empresa LTDA');
-        expect(response.body.data.cnpj).toBe('11222333000181');
+        expect(response.body.data.cnpj).toBe(VALID_CNPJS.CNPJ_1);
         expect(response.body.data.userId).toBe(user.id);
     });
 
@@ -37,7 +46,7 @@ describe('POST /api/profile', () => {
         await prisma.profile.create({
             data: {
                 fantasyName: 'Empresa Existente',
-                cnpj: '11222333000181',
+                cnpj: VALID_CNPJS.CNPJ_1,
                 zipCode: '12345678',
                 address: 'Rua Teste',
                 city: 'São Paulo',
@@ -52,7 +61,7 @@ describe('POST /api/profile', () => {
             .set('Authorization', createAuthHeader(token))
             .send({
                 fantasyName: 'Segunda Empresa',
-                cnpj: '11222333000182',
+                cnpj: VALID_CNPJS.CNPJ_2,
                 zipCode: '87654321',
                 address: 'Outra Rua',
                 city: 'Rio',
@@ -70,7 +79,7 @@ describe('POST /api/profile', () => {
         await prisma.profile.create({
             data: {
                 fantasyName: 'Empresa User1',
-                cnpj: '11222333000181',
+                cnpj: VALID_CNPJS.CNPJ_1,
                 zipCode: '12345678',
                 address: 'Rua Teste',
                 city: 'São Paulo',
@@ -85,7 +94,7 @@ describe('POST /api/profile', () => {
             .set('Authorization', createAuthHeader(token2))
             .send({
                 fantasyName: 'Empresa User2',
-                cnpj: '11222333000181',
+                cnpj: VALID_CNPJS.CNPJ_1,
                 zipCode: '87654321',
                 address: 'Outra Rua',
                 city: 'Rio',
@@ -103,7 +112,7 @@ describe('POST /api/profile', () => {
             .set('Authorization', createAuthHeader(token))
             .send({
                 fantasyName: 'Empresa Teste',
-                cnpj: '11111111111111', // CNPJ inválido
+                cnpj: VALID_CNPJS.CNPJ_INVALID,
                 zipCode: '12345678',
                 address: 'Rua Teste',
                 city: 'São Paulo',
@@ -121,7 +130,7 @@ describe('POST /api/profile', () => {
             .set('Authorization', createAuthHeader(token))
             .send({
                 fantasyName: 'Empresa Teste',
-                cnpj: '11222333000181',
+                cnpj: VALID_CNPJS.CNPJ_1,
                 zipCode: '123', // CEP inválido
                 address: 'Rua Teste',
                 city: 'São Paulo',
@@ -139,7 +148,7 @@ describe('POST /api/profile', () => {
             .set('Authorization', createAuthHeader(token))
             .send({
                 fantasyName: 'Empresa Sem Telefone',
-                cnpj: '11222333000181',
+                cnpj: VALID_CNPJS.CNPJ_1,
                 zipCode: '12345678',
                 address: 'Rua Teste',
                 city: 'São Paulo',
@@ -155,7 +164,7 @@ describe('POST /api/profile', () => {
             .post('/api/profile')
             .send({
                 fantasyName: 'Empresa Teste',
-                cnpj: '11222333000181',
+                cnpj: VALID_CNPJS.CNPJ_1,
                 zipCode: '12345678',
                 address: 'Rua Teste',
                 city: 'São Paulo',
@@ -173,7 +182,7 @@ describe('GET /api/profile/me', () => {
         await prisma.profile.create({
             data: {
                 fantasyName: 'Minha Empresa',
-                cnpj: '11222333000181',
+                cnpj: VALID_CNPJS.CNPJ_1,
                 zipCode: '12345678',
                 address: 'Rua Teste',
                 city: 'São Paulo',
@@ -209,7 +218,7 @@ describe('GET /api/profile/me', () => {
         await prisma.profile.create({
             data: {
                 fantasyName: 'Minha Empresa',
-                cnpj: '11222333000181',
+                cnpj: VALID_CNPJS.CNPJ_1,
                 zipCode: '12345678',
                 address: 'Rua Teste',
                 city: 'São Paulo',
@@ -236,7 +245,7 @@ describe('GET /api/profile/:id', () => {
         const profile = await prisma.profile.create({
             data: {
                 fantasyName: 'Minha Empresa',
-                cnpj: '11222333000181',
+                cnpj: VALID_CNPJS.CNPJ_1,
                 zipCode: '12345678',
                 address: 'Rua Teste',
                 city: 'São Paulo',
@@ -261,7 +270,7 @@ describe('GET /api/profile/:id', () => {
         const profile = await prisma.profile.create({
             data: {
                 fantasyName: 'Empresa User1',
-                cnpj: '11222333000181',
+                cnpj: VALID_CNPJS.CNPJ_1,
                 zipCode: '12345678',
                 address: 'Rua Teste',
                 city: 'São Paulo',
@@ -284,7 +293,7 @@ describe('GET /api/profile/:id', () => {
         const profile = await prisma.profile.create({
             data: {
                 fantasyName: 'Empresa User',
-                cnpj: '11222333000181',
+                cnpj: VALID_CNPJS.CNPJ_1,
                 zipCode: '12345678',
                 address: 'Rua Teste',
                 city: 'São Paulo',
@@ -320,7 +329,7 @@ describe('PUT /api/profile/me', () => {
         await prisma.profile.create({
             data: {
                 fantasyName: 'Empresa Original',
-                cnpj: '11222333000181',
+                cnpj: VALID_CNPJS.CNPJ_1,
                 zipCode: '12345678',
                 address: 'Rua Original',
                 city: 'São Paulo',
@@ -342,7 +351,7 @@ describe('PUT /api/profile/me', () => {
         expect(response.body.data.fantasyName).toBe('Empresa Atualizada');
         expect(response.body.data.address).toBe('Rua Nova, 456');
         expect(response.body.data.phone).toBe('(11) 91234-5678');
-        expect(response.body.data.cnpj).toBe('11222333000181'); // CNPJ não muda
+        expect(response.body.data.cnpj).toBe(VALID_CNPJS.CNPJ_1); // CNPJ não muda
     });
 
     it('should allow partial update', async () => {
@@ -352,7 +361,7 @@ describe('PUT /api/profile/me', () => {
         await prisma.profile.create({
             data: {
                 fantasyName: 'Empresa Original',
-                cnpj: '11222333000181',
+                cnpj: VALID_CNPJS.CNPJ_1,
                 zipCode: '12345678',
                 address: 'Rua Original',
                 city: 'São Paulo',
@@ -397,7 +406,7 @@ describe('PUT /api/profile/:id', () => {
         const profile = await prisma.profile.create({
             data: {
                 fantasyName: 'Empresa Original',
-                cnpj: '11222333000181',
+                cnpj: VALID_CNPJS.CNPJ_1,
                 zipCode: '12345678',
                 address: 'Rua Original',
                 city: 'São Paulo',
@@ -425,7 +434,7 @@ describe('PUT /api/profile/:id', () => {
         const profile = await prisma.profile.create({
             data: {
                 fantasyName: 'Empresa User1',
-                cnpj: '11222333000181',
+                cnpj: VALID_CNPJS.CNPJ_1,
                 zipCode: '12345678',
                 address: 'Rua Teste',
                 city: 'São Paulo',
@@ -451,7 +460,7 @@ describe('PUT /api/profile/:id', () => {
         const profile = await prisma.profile.create({
             data: {
                 fantasyName: 'Empresa User',
-                cnpj: '11222333000181',
+                cnpj: VALID_CNPJS.CNPJ_1,
                 zipCode: '12345678',
                 address: 'Rua Teste',
                 city: 'São Paulo',
@@ -480,7 +489,7 @@ describe('DELETE /api/profile/me', () => {
         const profile = await prisma.profile.create({
             data: {
                 fantasyName: 'Empresa Para Deletar',
-                cnpj: '11222333000181',
+                cnpj: VALID_CNPJS.CNPJ_1,
                 zipCode: '12345678',
                 address: 'Rua Teste',
                 city: 'São Paulo',
@@ -517,7 +526,7 @@ describe('DELETE /api/profile/:id', () => {
         const profile = await prisma.profile.create({
             data: {
                 fantasyName: 'Empresa Para Deletar',
-                cnpj: '11222333000181',
+                cnpj: VALID_CNPJS.CNPJ_1,
                 zipCode: '12345678',
                 address: 'Rua Teste',
                 city: 'São Paulo',
@@ -543,7 +552,7 @@ describe('DELETE /api/profile/:id', () => {
         const profile = await prisma.profile.create({
             data: {
                 fantasyName: 'Empresa User1',
-                cnpj: '11222333000181',
+                cnpj: VALID_CNPJS.CNPJ_1,
                 zipCode: '12345678',
                 address: 'Rua Teste',
                 city: 'São Paulo',
@@ -566,7 +575,7 @@ describe('DELETE /api/profile/:id', () => {
         const profile = await prisma.profile.create({
             data: {
                 fantasyName: 'Empresa User',
-                cnpj: '11222333000181',
+                cnpj: VALID_CNPJS.CNPJ_1,
                 zipCode: '12345678',
                 address: 'Rua Teste',
                 city: 'São Paulo',
@@ -599,7 +608,7 @@ describe('Security', () => {
         await prisma.profile.create({
             data: {
                 fantasyName: 'Empresa Original',
-                cnpj: '11222333000181',
+                cnpj: VALID_CNPJS.CNPJ_1,
                 zipCode: '12345678',
                 address: 'Rua Original',
                 city: 'São Paulo',
@@ -619,6 +628,6 @@ describe('Security', () => {
             .expect(200);
 
         // CNPJ não deve ter mudado
-        expect(response.body.data.cnpj).toBe('11222333000181');
+        expect(response.body.data.cnpj).toBe(VALID_CNPJS.CNPJ_1);
     });
 });
